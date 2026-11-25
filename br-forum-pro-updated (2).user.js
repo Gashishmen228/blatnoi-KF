@@ -134,6 +134,7 @@
 
   /* Пункты правил — заготовка, сверьте с актуальными правилами проекта */
   const RULES = [
+    { code: '3.04', title: 'Оск род/Упом',      desc: 'Запрещено оскорбление или косвенное упоминание родных вне зависимости от чата (IC или OOC) | Mute 300 минут / Ban 7 дней' },
     { code: '2.1', title: 'Нон РП',      desc: 'Запрещено поведение, нарушающее нормы Role Play процессов | Jail 30 минут' },
     { code: '2.2', title: 'Уход от РП',           desc: 'Запрещено целенаправленно уходить от RP (Role Play) процесса все различными способами | Jail 30 минут / Warn' },
     { code: '2.3', title: 'Нрп Драйв',             desc: 'Запрещён NonRP Drive — вождение любого транспортного средства в невозможных для него условиях, а также вождение в неправдоподобной манере | Jail 30 минут' },
@@ -149,9 +150,8 @@
     { code: '2.50', title: 'Арест в инте',      desc: ' Запрещены задержания, аресты, а также любые действия со стороны игроков, состоящих во фракциях, в интерьере аукциона, казино, а также во время системных мероприятий | Warn / Ban 10 дней' },
     { code: '2.53', title: 'Оск название',      desc: 'Запрещено устанавливать названия для внутриигровых ценностей (семей, бизнесов, компаний и др.) с использованием нецензурной лексики, оскорблений, слов политической или религиозной направленности | Принудительная смена названия семьи / Ban 1 день / При повторном нарушении – обнуление бизнеса' },
     { code: '2.55', title: 'Багоюз',      desc: 'Запрещается багоюз, связанный с анимацией в любых проявлениях | Jail 120 минут' },
-    { code: '2.57', title: 'Долг',      desc: 'Запрещается брать в долг игровые ценности и не возвращать их | Ban 30 дней / permban' },
+    { code: '2.57', title: 'Долг',      desc: 'Запрещается брать в долг игровые цости и не возвращать их | Ban 30 дней / permban' },
     { code: '3.02', title: 'Капс',      desc: 'Запрещено использование верхнего регистра (Caps Lock) при написании любого текста в любом чате | Mute 30 минут' },
-    { code: '3.04', title: 'Оск род/Упом',      desc: 'Запрещено оскорбление или косвенное упоминание родных вне зависимости от чата (IC или OOC) | Mute 300 минут / Ban 7 дней' },
     { code: '3.08', title: 'Слив чата',      desc: 'Запрещены любые формы «слива» посредством использования глобальных чатов | PermBan' },
     { code: '3.14', title: 'Музыка',      desc: 'Запрещено включать музыку в Voice Chat | Mute 60 минут' },
   ];
@@ -160,26 +160,63 @@
     complaints: [
       { id: 'approved', label: 'Одобрено',       prefix: 'Одобрено',        close: true,  color: '#27c269', icon: '✓', needsRule: true },
       { id: 'denied',   label: 'Отказано',        prefix: 'Отказано',        close: true,  color: '#e74c3c', icon: '✕', needsRule: false },
-      { id: 'waiting',  label: 'На рассмотрение', prefix: 'На рассмотрение', close: false, color: '#e6a700', icon: '⏳', needsRule: false },
+      { id: 'waiting',  label: 'На рассмотрении', prefix: 'На рассмотрении', close: false, color: '#e6a700', icon: '⏳', needsRule: false },
       { id: 'tech',  label: 'Тех. специалисту', prefix: 'Тех. специалисту', close: false, color: '#3b82c4', icon: '🛠', needsRule: false },
       { id: 'admin',  label: 'Главному администратору', prefix: 'Главному администратору', close: false, color: '#e67e22', icon: '👑', needsRule: false },
     ],
     bios: [
       { id: 'approved', label: 'Одобрено',     prefix: 'Одобрено',        close: true,  color: '#27c269', icon: '✓', needsRule: false },
-      { id: 'denied',   label: 'Отказано',      prefix: 'Отказано',        close: true,  color: '#e74c3c', icon: '✕', needsRule: false, needsComment: true },
-      { id: 'rework',   label: 'На доработку',  prefix: 'На рассмотрение', close: false, color: '#e6a700', icon: '🛠', needsRule: false, needsComment: true },
+      { id: 'denied',   label: 'Отказано',      prefix: 'Отказано',        close: true,  color: '#e74c3c', icon: '✕', needsRule: false },
+      { id: 'rework',   label: 'На доработку',  prefix: 'На рассмотрении', close: false, color: '#e6a700', icon: '🛠', needsRule: false, needsComment: true },
       { id: 'plagiar',  label: 'Плагиат',       prefix: 'Отказано',        close: true,  color: '#e74c3c', icon: '🚫', needsRule: false },
       { id: 'notform',  label: 'Не по форме',   prefix: 'Отказано',        close: true,  color: '#e74c3c', icon: '📝', needsRule: false },
     ],
   };
 
-  function buildVerdictText(kind, v, rule, comment) {
+  const OTHER_REASON = '__other__';
+
+  const DENY_REASONS = {
+    complaints: [
+      'Нет доказательств',
+      'Нарушений не обнаружено',
+      'Недостаточно доказательств',
+      'Нарушение не зафиксировано',
+      'Доказательства обрезаны или нечитаемы',
+      'Срок подачи истёк',
+      'Не по форме подачи',
+      'Док-ва загружены в соц сети',
+      OTHER_REASON,
+    ],
+    bios: [
+      'Мало информации о персонаже',
+      'Нарушена логика РП',
+      'Незаконченная биография',
+      'Не по лору сервера',
+      'Не по форме подачи',
+      OTHER_REASON,
+    ],
+  };
+
+  const WAIT_REASONS = {
+    complaints: [
+      'Дополните тай-коды',
+      'Дополните доказательства',
+      'Ожидание ответа сторон',
+      'Ожидание проверки тех. специалистом',
+      OTHER_REASON,
+    ],
+    bios: [],
+  };
+
+  function buildVerdictText(kind, v, rule, comment, reason) {
     const c = (comment || '').trim();
-    const cBlock = c ? c + '\n\n' : '';
+    const isOther = reason === OTHER_REASON;
+    const reasonText = isOther ? c : (reason || '');
+    const cBlock = (!isOther && c) ? c + '\n\n' : '';
     if (kind === 'bios') {
       switch (v.id) {
         case 'approved': return `Здравствуйте!\n\nВаша биография рассмотрена и одобрена. Приятной игры на проекте!\n\n${cBlock}Тема закрыта.`;
-        case 'denied':   return `Здравствуйте!\n\nБиография рассмотрена и отклонена.\n\nПричина: ${c}\n\nИсправьте недочёты и подайте биографию повторно. Тема закрыта.`;
+        case 'denied':   return `Здравствуйте!\n\nБиография рассмотрена и отклонена.\n\nПричина отказа: ${reasonText || '—'}\n\n${cBlock}Исправьте недочёты и подайте биографию повторно. Тема закрыта.`;
         case 'rework':   return `Здравствуйте!\n\nБиография принята на доработку.\n\nЧто исправить: ${c}\n\nТему оставляем открытой — дождитесь повторной проверки.`;
         case 'plagiar':  return `Здравствуйте!\n\nВ биографии обнаружено заимствование чужой работы. Биография отклонена.\n\n${cBlock}Повторная подача — только с оригинальным текстом. Тема закрыта.`;
         case 'notform':  return `Здравствуйте!\n\nБиография оформлена не по форме раздела. Используйте шаблон из закреплённой темы.\n\n${cBlock}Тема закрыта до перезалива.`;
@@ -187,8 +224,11 @@
       return '';
     }
     if (v.id === 'approved') return `Здравствуйте!\n\nЖалоба рассмотрена и одобрена.\n\nВиновному игроку выдано наказание по пункту ${rule.code} правил сервера — «${rule.title}».\n\n${cBlock}Благодарим за обращение — тема закрыта.`;
-    if (v.id === 'denied')   return `Здравствуйте!\n\nЖалоба рассмотрена.\n\nНарушение не зафиксировано: действия игрока не противоречат правилам сервера.\n\n${cBlock}Тема закрыта.`;
-    if (v.id === 'waiting')  return `Здравствуйте!\n\nЖалоба принята на рассмотрение. Срок рассмотрения — до 48 часов с момента подачи.\n\nПросьба не создавать дубликаты темы и не «апать» её.\n\n${cBlock}`;
+    if (v.id === 'denied')   return `Здравствуйте!\n\nЖалоба рассмотрена.\n\nПричина отказа: ${reasonText || '—'}\n\n${cBlock}Тема закрыта.`;
+    if (v.id === 'waiting') {
+      const wBlock = reasonText ? `Уточнение: ${reasonText}\n\n` : '';
+      return `Здравствуйте!\n\nЖалоба принята на рассмотрение. Срок рассмотрения — до 48 часов с момента подачи.\n\n${wBlock}Просьба не создавать дубликаты темы и не «апать» её.\n\n${cBlock}`;
+    }
     return '';
   }
 
@@ -1069,6 +1109,15 @@
       transition: background .14s;
     }
     .br-qc-ins:hover { background: rgba(39,194,105,.26); }
+    .br-rail-prof-num {
+      position: absolute; top: 1px; right: 1px;
+      min-width: 15px; height: 15px; border-radius: 8px;
+      background: #27c269; color: #06230f;
+      font-size: 10px; font-weight: 800; line-height: 15px; text-align: center;
+      padding: 0 3px; border: 2px solid #10131e;
+      display: none;
+    }
+
   `;
 
   function injectStyles() {
@@ -1551,8 +1600,42 @@
 
   /* --- Сетевые helpers --- */
   function qcExtractBioText() {
-    const post = document.querySelector('.message--primary .fr-view, .message--post .fr-view, article.message .fr-view');
-    return post ? post.textContent.replace(/\u00a0/g, ' ').trim() : null;
+    const sel = [
+      '.message--primary .bbWrapper',
+      'article.message--post .bbWrapper',
+      '.message--post .bbWrapper',
+      '.bbWrapper',
+      '.message--primary .fr-view',
+      'article.message--post .fr-view',
+      '.message--post .fr-view',
+      '[itemprop="text"]',
+      '.message-body',
+    ];
+    for (const s of sel) {
+      const el = document.querySelector(s);
+      const t = el ? el.textContent.replace(/\u00a0/g, ' ').trim() : '';
+      if (t.length > 40) return t;
+    }
+    return null;
+  }
+
+  async function qcGetBioText() {
+    let t = qcExtractBioText();
+    if (t) return t;
+    const id = getThreadId();
+    if (!id) return null;
+    try {
+      const res = await fetch(location.origin + '/threads/' + id + '/', { credentials: 'same-origin' });
+      if (res.ok) {
+        const doc = new DOMParser().parseFromString(await res.text(), 'text/html');
+        const p = doc.querySelector('.message--primary .bbWrapper, article.message--post .bbWrapper, .message--post .bbWrapper, .bbWrapper, .fr-view, [itemprop="text"]');
+        if (p) {
+          t = p.textContent.replace(/\u00a0/g, ' ').trim();
+          return t.length > 40 ? t : null;
+        }
+      }
+    } catch (e) {}
+    return null;
   }
 
   async function qcSearchForum(phrase, excludeId) {
@@ -1578,7 +1661,7 @@
     const res = await fetch(url, { credentials: 'same-origin' });
     if (!res.ok) return '';
     const doc = new DOMParser().parseFromString(await res.text(), 'text/html');
-    const p = doc.querySelector('.message--primary .fr-view, .message--post .fr-view, article.message .fr-view');
+    const p = doc.querySelector('.message--primary .bbWrapper, article.message--post .bbWrapper, .message--post .bbWrapper, .bbWrapper, .fr-view, [itemprop="text"]');
     return p ? p.textContent : '';
   }
 
@@ -1591,7 +1674,7 @@
     const panel = document.createElement('div');
     panel.className = 'br-qc';
 
-    const bioText = qcExtractBioText();
+    let bioText = qcExtractBioText();
 
     const title = document.createElement('div');
     title.className = 'br-qc-title';
@@ -1599,14 +1682,22 @@
 
     const stats = document.createElement('div');
     stats.className = 'br-qc-stats';
-    if (bioText) {
-      const st = qcWordStats(bioText);
-      stats.innerHTML = '<span class="br-qc-dot br-qc-dot--' + st.tone + '"></span>' +
-        '<span><b>' + st.words + '</b> слов · <b>' + st.chars + '</b> символов · ' + st.sents + ' предл.' +
-        ' <span class="br-qc-note">(норма от ' + QC_MIN_WORDS + ' слов)</span></span>';
-    } else {
-      stats.innerHTML = '<span class="br-qc-dot br-qc-dot--warn"></span><span>Не удалось прочитать первый пост темы</span>';
+
+    function updateStats() {
+      if (bioText) {
+        const st = qcWordStats(bioText);
+        stats.innerHTML = '<span class="br-qc-dot br-qc-dot--' + st.tone + '"></span>' +
+          '<span><b>' + st.words + '</b> слов · <b>' + st.chars + '</b> символов · ' + st.sents + ' предл.' +
+          ' <span class="br-qc-note">(норма от ' + QC_MIN_WORDS + ' слов)</span></span>';
+      } else {
+        stats.innerHTML = '<span class="br-qc-dot br-qc-dot--warn"></span><span>Пост пока не прочитан — кнопки попробуют ещё раз</span>';
+      }
     }
+    updateStats();
+
+    const NO_TEXT_HTML = '<div class="br-qc-note">Не удалось прочитать первый пост темы.<br>' +
+      'Откройте тему с первого поста и нажмите кнопку ещё раз — ' +
+      'скрипт повторит попытку и при необходимости сам подтянет начало темы по ссылке.</div>';
 
     const row = document.createElement('div');
     row.className = 'br-qc-row';
@@ -1644,8 +1735,10 @@
     }
 
     bCopy.onclick = async () => {
-      if (!bioText) { showReport('⚠ Нет текста', 'warn', '<div class="br-qc-note">Не удалось прочитать биографию со страницы.</div>', ''); return; }
       bCopy.disabled = true;
+      if (!bioText) bioText = await qcGetBioText();
+      if (!bioText) { showReport('⚠ Нет текста', 'warn', NO_TEXT_HTML, ''); return; }
+      updateStats();
       const old = bCopy.textContent;
       bCopy.textContent = '⏳ Ищу…';
       try {
@@ -1687,8 +1780,10 @@
       }
     };
 
-    bAi.onclick = () => {
-      if (!bioText) { showReport('⚠ Нет текста', 'warn', '<div class="br-qc-note">Не удалось прочитать биографию со страницы.</div>', ''); return; }
+    bAi.onclick = async () => {
+      if (!bioText) bioText = await qcGetBioText();
+      if (!bioText) { showReport('⚠ Нет текста', 'warn', NO_TEXT_HTML, ''); return; }
+      updateStats();
       const r = qcAiCheck(bioText);
       const tone = r.percent >= 65 ? 'bad' : r.percent >= 35 ? 'warn' : 'ok';
       const label = r.percent >= 65 ? 'высокая вероятность ИИ' : r.percent >= 35 ? 'есть признаки ИИ' : 'вероятность ИИ низкая';
@@ -1701,8 +1796,10 @@
         (r.found.length ? '. Признаки: ' + r.found.slice(0, 8).join(', ') : '. Шаблонных фраз не найдено'));
     };
 
-    bSpell.onclick = () => {
-      if (!bioText) { showReport('⚠ Нет текста', 'warn', '<div class="br-qc-note">Не удалось прочитать биографию со страницы.</div>', ''); return; }
+    bSpell.onclick = async () => {
+      if (!bioText) bioText = await qcGetBioText();
+      if (!bioText) { showReport('⚠ Нет текста', 'warn', NO_TEXT_HTML, ''); return; }
+      updateStats();
       const r = qcSpellCheck(bioText);
       const tone = r.fixes.length ? 'bad' : r.warns.length ? 'warn' : 'ok';
       const badge = r.fixes.length
@@ -1762,7 +1859,7 @@
     const body = document.createElement('div');
     body.id = 'br-vb-body';
 
-    const state = { verdict: null, rule: null };
+    const state = { verdict: null, rule: null, reason: null };
 
     /* Шаг 1: вердикт */
     const stageV = document.createElement('div');
@@ -1779,6 +1876,7 @@
       b.onclick = () => {
         state.verdict = v;
         state.rule = null;
+        state.reason = null;
         vBtns.forEach((x) => x.classList.remove('br-vb-verdict--sel'));
         b.classList.add('br-vb-verdict--sel');
         renderStages();
@@ -1789,6 +1887,44 @@
     });
     stageV.appendChild(vRow);
     body.appendChild(stageV);
+
+    /* Этап «Причина отказа / Уточнение» — чипы */
+    const stageNTitle = document.createElement('div');
+    stageNTitle.className = 'br-vb-stage-title';
+    const nRow = document.createElement('div');
+    nRow.className = 'br-vb-verdicts';
+    const stageN = document.createElement('div');
+    stageN.className = 'br-vb-stage';
+    stageN.append(stageNTitle, nRow);
+    body.appendChild(stageN);
+
+    function reasonsFor(v) {
+      if (!v) return null;
+      if (v.id === 'denied') return { list: DENY_REASONS[kind] || [], title: 'Причина отказа', emptyMsg: '⚠ Выберите причину отказа' };
+      if (v.id === 'waiting' && kind === 'complaints') return { list: WAIT_REASONS.complaints, title: 'Уточнение', emptyMsg: '⚠ Выберите уточнение' };
+      return null;
+    }
+
+    function renderReasons() {
+      const r = reasonsFor(state.verdict);
+      if (!r) { stageN.style.display = 'none'; return; }
+      stageN.style.display = '';
+      nRow.innerHTML = '';
+      r.list.forEach((x) => {
+        const b = document.createElement('button');
+        b.className = 'br-vb-verdict';
+        b.style.setProperty('--vc', state.verdict.color);
+        b.innerHTML = x === OTHER_REASON ? '<span>✏️ Другая причина</span>' : `<span>${x}</span>`;
+        if (state.reason === x) b.classList.add('br-vb-verdict--sel');
+        b.onclick = () => {
+          state.reason = state.reason === x ? null : x;
+          nRow.querySelectorAll('.br-vb-verdict').forEach((el) => el.classList.remove('br-vb-verdict--sel'));
+          if (state.reason) b.classList.add('br-vb-verdict--sel');
+          updatePreview();
+        };
+        nRow.appendChild(b);
+      });
+    }
 
     /* Шаг 2: пункт правил (только для «Одобрено» в жалобах) */
     let stageR = null, rulesBox = null, ruleSearch = null;
@@ -1874,28 +2010,41 @@
         preview.textContent = 'Выберите пункт правил — он попадёт в текст ответа.';
         return;
       }
-      preview.textContent = buildVerdictText(kind, state.verdict, state.rule, comment.value) || '—';
+      const r = reasonsFor(state.verdict);
+      if (r && !state.reason) {
+        preview.textContent = 'Выберите ' + (r.title === 'Уточнение' ? 'уточнение' : 'причину отказа') + ' — текст появится здесь.';
+        return;
+      }
+      preview.textContent = buildVerdictText(kind, state.verdict, state.rule, comment.value, state.reason) || '—';
     }
 
     function renderStages() {
-      const needRule = state.verdict && state.verdict.needsRule;
+      const v = state.verdict;
+      const needRule = v && v.needsRule;
+      const r = reasonsFor(v);
+
+      if (v) renderReasons(); else stageN.style.display = 'none';
+
+      let n = 1;
       if (stageR) {
         stageR.style.display = needRule ? '' : 'none';
-        const vc = state.verdict ? state.verdict.color : '#6366f1';
+        const vc = v ? v.color : '#6366f1';
         rulesBox.style.setProperty('--vc', vc);
-        if (needRule) renderRules();
+        if (needRule) {
+          n++;
+          stageR.querySelector('.br-vb-stage-title').innerHTML = `<b>${n}</b> · Пункт правил`;
+          renderRules();
+        }
       }
-
-      if (needRule) {
-        stageCTitle.innerHTML = '<b>3</b> · Комментарий <span style="color:#8a8f9a">(необязательно)</span>';
-        stagePTitle.innerHTML = '<b>4</b> · Предпросмотр';
-      } else {
-        stageCTitle.innerHTML = `<b>2</b> · Комментарий ${
-          state.verdict && state.verdict.needsComment
-            ? '<span style="color:#e74c3c">(обязателен)</span>'
-            : '<span style="color:#8a8f9a">(необязательно)</span>'}`;
-        stagePTitle.innerHTML = '<b>3</b> · Предпросмотр';
+      if (r) {
+        n++;
+        stageNTitle.innerHTML = `<b>${n}</b> · ${r.title}`;
       }
+      const commNote = v && v.needsComment
+        ? '<span style="color:#e74c3c">(обязателен)</span>'
+        : '<span style="color:#8a8f9a">(необязательно)</span>';
+      stageCTitle.innerHTML = `<b>${n + 1}</b> · Комментарий ${commNote}`;
+      stagePTitle.innerHTML = `<b>${n + 2}</b> · Предпросмотр`;
     }
     renderStages();
 
@@ -1914,6 +2063,9 @@
 
     function validate() {
       if (!state.verdict) { toast('⚠ Выберите вердикт', 'warn'); return false; }
+      const r = reasonsFor(state.verdict);
+      if (r && !state.reason) { toast(r.emptyMsg, 'warn'); return false; }
+      if (state.reason === OTHER_REASON && !comment.value.trim()) { toast('⚠ Опишите причину в комментарии', 'warn'); return false; }
       if (state.verdict.needsRule && !state.rule) { toast('⚠ Выберите пункт правил', 'warn'); return false; }
       if (state.verdict.needsComment && !comment.value.trim()) { toast('⚠ Для этого вердикта нужен комментарий', 'warn'); return false; }
       return true;
@@ -1921,7 +2073,7 @@
 
     async function doSubmit() {
       if (!validate()) return;
-      const text = buildVerdictText(kind, state.verdict, state.rule, comment.value);
+      const text = buildVerdictText(kind, state.verdict, state.rule, comment.value, state.reason);
       sendBtn.disabled = insertBtn.disabled = true;
       toast('⏳ Отправляю ответ…', 'info');
       const sent = await submitReply(editor, text);
@@ -1934,6 +2086,7 @@
         ? '⏳ Ставлю префикс и закрываю тему…' : '⏳ Ставлю префикс…', 'info');
       const ok = await applyVerdict(state.verdict.prefix, state.verdict.close);
       if (ok) {
+        try { profRecord(kind, state.verdict.label); } catch (e) {}
         closeVerdictBuilder();
         toast('✓ Готово: вердикт «' + state.verdict.label + '»');
         setTimeout(() => location.reload(), 900);
@@ -1944,7 +2097,7 @@
     sendBtn.onclick = doSubmit;
     insertBtn.onclick = () => {
       if (!validate()) return;
-      const text = buildVerdictText(kind, state.verdict, state.rule, comment.value);
+      const text = buildVerdictText(kind, state.verdict, state.rule, comment.value, state.reason);
       editor.focus();
       document.execCommand('insertText', false, text);
       closeVerdictBuilder();
@@ -2174,6 +2327,13 @@
         updateWaitNum();
       };
       btn.title = 'Показать только темы «на рассмотрении»';
+    } else if (kind === 'profile') {
+      const num = document.createElement('span');
+      num.className = 'br-rail-prof-num';
+      num.id = 'br-rail-prof-num';
+      btn.appendChild(num);
+      btn.onclick = () => openProfileModal();
+      btn.title = 'Статистика обработанных тем';
     } else if (!url) {
       btn.classList.add('br-rail-item--off');
       btn.title = 'Подраздел не найден. Зайдите в него вручную — и повторно выберите сервер.';
@@ -2200,6 +2360,211 @@
     } else {
       num.classList.remove('br-rail-wait-num--on');
     }
+  }
+
+/* ================= ПРОФИЛЬ: статистика обработанных тем ================= */
+  const PROF_LS_KEY = 'br_prof_stats_v1';
+  const PROF_VERDICT_COLORS = {
+    'Одобрено': '#27c269',
+    'Отказано': '#e74c3c',
+    'На рассмотрение': '#e6a700',
+    'Тех. специалисту': '#3b82c4',
+    'Главному администратору': '#e67e22',
+  };
+  const PROF_KIND_NAMES = { complaints: 'Жалобы на игроков', bios: 'РП биографии', situations: 'РП ситуации' };
+
+  function profLoad() {
+    try {
+      const raw = JSON.parse(localStorage.getItem(PROF_LS_KEY));
+      if (raw && typeof raw === 'object') {
+        raw.total = raw.total || 0;
+        raw.byVerdict = raw.byVerdict || {};
+        raw.byKind = raw.byKind || {};
+        raw.days = raw.days || {};
+        raw.history = raw.history || [];
+        return raw;
+      }
+    } catch (e) {}
+    return { total: 0, byVerdict: {}, byKind: {}, days: {}, history: [] };
+  }
+  function profSave(st) {
+    try { localStorage.setItem(PROF_LS_KEY, JSON.stringify(st)); } catch (e) {}
+  }
+  function profDayKey(d) {
+    d = d || new Date();
+    return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+  }
+  function profCountDays(st, daysBack) {
+    let sum = 0;
+    for (let i = 0; i < daysBack; i++) {
+      const d = new Date();
+      d.setDate(d.getDate() - i);
+      sum += (st.days && st.days[profDayKey(d)]) || 0;
+    }
+    return sum;
+  }
+  function updateProfileBadge() {
+    const num = document.getElementById('br-rail-prof-num');
+    if (!num) return;
+    const st = profLoad();
+    const n = st.total || 0;
+    if (n) {
+      num.textContent = n > 99 ? '99+' : String(n);
+      num.style.display = 'block';
+    } else {
+      num.style.display = 'none';
+    }
+  }
+  function profRecord(kind, verdictLabel) {
+    const st = profLoad();
+    st.total = (st.total || 0) + 1;
+    st.byVerdict[verdictLabel] = (st.byVerdict[verdictLabel] || 0) + 1;
+    st.byKind[kind] = (st.byKind[kind] || 0) + 1;
+    const dk = profDayKey();
+    st.days[dk] = (st.days[dk] || 0) + 1;
+    st.history.unshift({ t: Date.now(), v: verdictLabel, k: kind });
+    if (st.history.length > 10) st.history = st.history.slice(0, 10);
+    profSave(st);
+    updateProfileBadge();
+  }
+
+  function openProfileModal() {
+    const st = profLoad();
+    const ov = document.createElement('div');
+    ov.style.cssText = 'position:fixed;inset:0;z-index:2147483647;background:rgba(8,10,16,.62);display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .18s';
+    const modal = document.createElement('div');
+    modal.style.cssText = 'width:min(520px,92vw);max-height:82vh;overflow-y:auto;background:#14161e;border:1px solid rgba(255,255,255,.08);border-radius:18px;padding:22px;color:#e8eaf0;font:13px/1.5 "Segoe UI",Roboto,sans-serif;box-shadow:0 24px 64px rgba(0,0,0,.55);transform:translateY(8px);transition:transform .18s';
+
+    const head = document.createElement('div');
+    head.style.cssText = 'display:flex;align-items:center;gap:10px;margin-bottom:16px';
+    const ttl = document.createElement('div');
+    ttl.textContent = '👤 Профиль куратора';
+    ttl.style.cssText = 'flex:1;font-size:16px;font-weight:800';
+    const xbtn = document.createElement('button');
+    xbtn.textContent = '✕';
+    xbtn.style.cssText = 'border:none;background:rgba(255,255,255,.07);color:#c3c8d2;width:30px;height:30px;border-radius:9px;cursor:pointer;font-size:14px';
+    xbtn.onclick = () => ov.remove();
+    head.append(ttl, xbtn);
+
+    const cards = document.createElement('div');
+    cards.style.cssText = 'display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:4px';
+    const cardDefs = [
+      ['Всего обработано', st.total || 0, '#27c269'],
+      ['Сегодня', profCountDays(st, 1), '#3b82c4'],
+      ['За 7 дней', profCountDays(st, 7), '#7c3aed'],
+    ];
+    cardDefs.forEach(function (cd) {
+      const card = document.createElement('div');
+      card.style.cssText = 'padding:12px;border-radius:12px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07)';
+      card.innerHTML = '<div style="font-size:11px;color:#9aa0ab">' + cd[0] + '</div>' +
+        '<div style="font-size:22px;font-weight:800;color:' + cd[2] + ';margin-top:2px">' + cd[1] + '</div>';
+      cards.appendChild(card);
+    });
+
+    function sectionTitle(text) {
+      const s = document.createElement('div');
+      s.textContent = text;
+      s.style.cssText = 'font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:#9aa0ab;margin:14px 0 8px';
+      return s;
+    }
+
+    /* По вердиктам */
+    modal.append(head, cards, sectionTitle('По вердиктам'));
+    const vEntries = Object.keys(st.byVerdict || {}).map(function (k) { return [k, st.byVerdict[k]]; }).filter(function (e) { return e[1] > 0; });
+    if (!vEntries.length) {
+      const emp = document.createElement('div');
+      emp.textContent = 'Пока пусто — обработайте первую тему';
+      emp.style.cssText = 'color:#7d838e;font-size:12px;padding:4px 0';
+      modal.appendChild(emp);
+    } else {
+      let vMax = 1;
+      vEntries.forEach(function (e) { if (e[1] > vMax) vMax = e[1]; });
+      vEntries.forEach(function (e) {
+        const c = PROF_VERDICT_COLORS[e[0]] || '#8a8f9a';
+        const row = document.createElement('div');
+        row.style.cssText = 'display:flex;align-items:center;gap:8px;margin:5px 0';
+        row.innerHTML = '<div style="width:170px;font-size:12px;color:#c3c8d2">' + e[0] + '</div>' +
+          '<div style="flex:1;height:8px;border-radius:4px;background:rgba(255,255,255,.07);overflow:hidden">' +
+          '<div style="height:100%;border-radius:4px;width:' + Math.round(e[1] / vMax * 100) + '%;background:' + c + '"></div></div>' +
+          '<div style="width:30px;text-align:right;font-weight:700;font-size:12px">' + e[1] + '</div>';
+        modal.appendChild(row);
+      });
+    }
+
+    /* По разделам */
+    modal.appendChild(sectionTitle('По разделам'));
+    const kEntries = Object.keys(st.byKind || {}).map(function (k) { return [PROF_KIND_NAMES[k] || k, st.byKind[k]]; }).filter(function (e) { return e[1] > 0; });
+    if (!kEntries.length) {
+      const emp2 = document.createElement('div');
+      emp2.textContent = 'Нет данных';
+      emp2.style.cssText = 'color:#7d838e;font-size:12px;padding:4px 0';
+      modal.appendChild(emp2);
+    } else {
+      let kMax = 1;
+      kEntries.forEach(function (e) { if (e[1] > kMax) kMax = e[1]; });
+      kEntries.forEach(function (e) {
+        const row = document.createElement('div');
+        row.style.cssText = 'display:flex;align-items:center;gap:8px;margin:5px 0';
+        row.innerHTML = '<div style="width:170px;font-size:12px;color:#c3c8d2">' + e[0] + '</div>' +
+          '<div style="flex:1;height:8px;border-radius:4px;background:rgba(255,255,255,.07);overflow:hidden">' +
+          '<div style="height:100%;border-radius:4px;width:' + Math.round(e[1] / kMax * 100) + '%;background:#7c3aed"></div></div>' +
+          '<div style="width:30px;text-align:right;font-weight:700;font-size:12px">' + e[1] + '</div>';
+        modal.appendChild(row);
+      });
+    }
+
+    /* История */
+    modal.appendChild(sectionTitle('Последние обработки'));
+    const hist = st.history || [];
+    if (!hist.length) {
+      const emp3 = document.createElement('div');
+      emp3.textContent = 'История пуста';
+      emp3.style.cssText = 'color:#7d838e;font-size:12px;padding:4px 0';
+      modal.appendChild(emp3);
+    } else {
+      const pad = function (n) { return String(n).padStart(2, '0'); };
+      hist.forEach(function (h) {
+        const d = new Date(h.t);
+        const item = document.createElement('div');
+        item.style.cssText = 'display:flex;gap:8px;padding:7px 0;border-top:1px solid rgba(255,255,255,.05);font-size:12px;color:#c3c8d2';
+        item.innerHTML = '<span style="color:#8a8f9a">' + pad(d.getDate()) + '.' + pad(d.getMonth() + 1) + ' ' + pad(d.getHours()) + ':' + pad(d.getMinutes()) + '</span>' +
+          '<span style="color:#fff;font-weight:700">' + (h.v || '') + '</span>' +
+          '<span>' + (PROF_KIND_NAMES[h.k] || h.k || '') + '</span>';
+        modal.appendChild(item);
+      });
+    }
+
+    const reset = document.createElement('button');
+    reset.textContent = 'Сбросить статистику';
+    reset.style.cssText = 'margin-top:16px;width:100%;padding:9px;border-radius:11px;border:1px solid rgba(231,76,60,.4);background:rgba(231,76,60,.14);color:#ff8a7d;font-weight:700;cursor:pointer';
+    reset.onclick = function () {
+      if (reset.dataset.armed === '1') {
+        try { localStorage.removeItem(PROF_LS_KEY); } catch (e) {}
+        ov.remove();
+        updateProfileBadge();
+        toast('Статистика сброшена', 'warn');
+      } else {
+        reset.dataset.armed = '1';
+        reset.textContent = 'Точно сбросить? Нажмите ещё раз';
+        toast('Нажмите ещё раз для подтверждения', 'warn');
+        setTimeout(function () {
+          reset.dataset.armed = '';
+          reset.textContent = 'Сбросить статистику';
+        }, 3000);
+      }
+    };
+    modal.appendChild(reset);
+
+    ov.appendChild(modal);
+    ov.onclick = function (e) { if (e.target === ov) ov.remove(); };
+    document.addEventListener('keydown', function esc(e) {
+      if (e.key === 'Escape') { ov.remove(); document.removeEventListener('keydown', esc); }
+    });
+    document.body.appendChild(ov);
+    requestAnimationFrame(function () {
+      ov.style.opacity = '1';
+      modal.style.transform = 'none';
+    });
   }
 
   function renderRailBody() {
@@ -2234,6 +2599,15 @@
     });
     filterItem.setAttribute('data-rail-dyn', '');
     rail.insertBefore(filterItem, sep);
+
+    /* Профиль: счётчик обработанных тем */
+    const profItem = buildRailItem({
+      icon: '👤', color: '#27c269', label: 'Профиль', kind: 'profile',
+    });
+    profItem.setAttribute('data-rail-dyn', '');
+    rail.insertBefore(profItem, sep);
+
+    updateProfileBadge();
 
     updateWaitNum();
   }
